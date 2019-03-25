@@ -10,7 +10,10 @@ def createdataset():
     labels = ['A', 'A', 'B', 'B']
     return group, labels
 
-
+# inX 用于分类的输入向量
+# dataSet 训练的样本集
+# labels 标签向量
+# k表示用于选择最近邻居的数目
 def classify0(inX, dataSet, labels, k):
     dataSetSize = dataSet.shape[0]
     diffMat = tile(inX, (dataSetSize,1)) - dataSet
@@ -94,8 +97,51 @@ def classifyPerson():
     print('you will probably like this person : ', resultList[classfierResult - 1])
 
 
-classifyPerson()
+def img2Vector(filename):
+    returnVect = zeros((1, 1024))
+    fr = open(filename)
+    for i in range(32):
+        lineStr = fr.readline()
+        for j in range(32):
+            returnVect[0, 32 * i + j] = int(lineStr[j])
+    return returnVect
 
+
+def handwritingClassTest():
+    hwLabels = []
+    trainingFileList = listdir('trainingDigits')
+    m = len(trainingFileList)
+    trainingMat = zeros((m, 1024))
+    for i in range(m):
+        fileNameStr = trainingFileList[i]
+        fileStr = fileNameStr.split(".")[0]
+        classNumStr = int(fileStr.split('_')[0])
+        hwLabels.append(classNumStr)
+        trainingMat[i, :] = img2Vector('trainingDigits/%s' % fileNameStr)
+    testFileList = listdir('testDigits')
+    errorCount = 0.0
+    mTest = len(testFileList)
+    for i in range(mTest):
+        fileNameStr = testFileList[i]
+        fileStr = fileNameStr.split('.')[0]
+        classNumStr = int(fileStr.split('_')[0])
+        vectorUnderTest = img2Vector('testDigits/%s' % fileNameStr)
+        # 输入用于分类的inX, 输入训练样本集为ｄａｔａＳｅｔ
+        # 标签向量，ｋ选择的最近邻居的数目。
+        classifierResult = classify0(vectorUnderTest, trainingMat, hwLabels, 3)
+        print("the classfier came back with : %d, the real answer is : %d " %(classifierResult, classNumStr))
+        if(classifierResult != classNumStr):
+            errorCount += 1
+    print('\n the total number of errors is : %d' %errorCount)
+    print('\n the total error rate is: %f' %(errorCount / float(mTest)))
+
+
+testVector = img2Vector('testDigits/0_13.txt')
+handwritingClassTest()
+# print(testVector[0, 0:31])
+# print(testVector[0, 32:63])
+
+# classifyPerson()
 # datingClassTest()
 
 # datingDataMat, datingLabels = file2matrix('datingTestSet2.txt')
